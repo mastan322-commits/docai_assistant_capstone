@@ -1,0 +1,40 @@
+# --- Web Frameworks ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+flask==3.0.3   # optional, if you want lightweight demos
+
+# --- LangChain Core + Integrations ---
+langchain==0.3.7
+langchain-google-genai==2.0.4
+langchain-chroma==0.1.4
+langchain-community==0.3.7
+
+# --- Google Gemini SDK ---
+google-generativeai==0.8.3
+
+# --- Hugging Face / NLP ---
+torch==2.3.1
+transformers==4.44.0
+sentence-transformers==3.1.0
+nltk==3.9
+spacy==3.7.5
+
+# --- Vector Databases ---
+faiss-cpu==1.8.0
+chromadb==0.5.18   # latest release
+
+# --- Document Parsing ---
+pypdf==4.3.1
+pandas==2.2.3
+openpyxl==3.1.5
+
+# --- Utilities & Config ---
+python-multipart==0.0.12
+python-dotenv==1.0.1
+pydantic==2.9.2
+pydantic-settings==2.5.2
+httpx>=0.28.1,<1.0.0
+tqdm==4.66.5
+requests==2.32.3
+matplotlib==3.9.1
+jupyter==1.0.0
