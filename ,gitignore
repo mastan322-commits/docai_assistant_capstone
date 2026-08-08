@@ -1,1 +1,37 @@
+# --- Python Virtual Environments ---
+venv/
+.venv/
+env/
+
+# --- Environment Variables ---
+.env
+*.env
+
+# --- Python Cache & Build Artifacts ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.egg-info/
+
+# --- Jupyter Notebook Checkpoints ---
+.ipynb_checkpoints/
+
+# --- Logs & Temporary Files ---
+*.log
+*.tmp
+
+# --- Data & Datasets ---
+data/raw/
+data/processed/
+
+# --- Model Artifacts ---
+models/
+checkpoints/
+
+# --- OS-specific Files ---
+.DS_Store
+Thumbs.db
 
