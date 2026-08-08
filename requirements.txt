@@ -13,7 +13,7 @@ langchain-community==0.3.7
 google-generativeai==0.8.3
 
 # --- Hugging Face / NLP ---
-torch==2.3.1
+torch==2.13.0
 transformers==4.44.0
 sentence-transformers==3.1.0
 nltk==3.9
