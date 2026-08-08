@@ -17,7 +17,7 @@ torch==2.13.0
 transformers==4.44.0
 sentence-transformers==3.1.0
 nltk==3.9
-spacy==3.7.5
+# spacy==3.7.5
 
 # --- Vector Databases ---
 faiss-cpu==1.8.0
