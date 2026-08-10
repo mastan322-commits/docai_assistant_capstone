@@ -2,18 +2,21 @@ from fastapi import FastAPI, UploadFile, File, status
 import tempfile
 from app.api.ingestion.file_processor import process_file
 from pydantic import BaseModel
-
+import os
 app = FastAPI()
+
 
 @app.post("/upload-document/")
 async def upload_document(file: UploadFile = File(...)):
-    # Save temporarily
-    with tempfile.NamedTemporaryFile(delete=False, suffix=file.filename) as tmp:
+    ext = os.path.splitext(file.filename)[1]   # ".pdf"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
 
     content = process_file(tmp_path)
     return {"filename": file.filename, "content_preview": content[:500]}
+
+
 
 @app.get("/")
 def read_root():
