@@ -1,6 +1,19 @@
 from fastapi import FastAPI, UploadFile, File
+import tempfile
+from app.ingestion.file_processor import process_file
 
 app = FastAPI()
+
+@app.post("/upload-document/")
+async def upload_document(file: UploadFile = File(...)):
+    # Save temporarily
+    with tempfile.NamedTemporaryFile(delete=False, suffix=file.filename) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    content = process_file(tmp_path)
+    return {"filename": file.filename, "content_preview": content[:500]}
+
 
 @app.get("/")
 def read_root():
@@ -11,12 +24,6 @@ def read_root():
 def health_check():
     return {"status": "API is up and running"}
 
-# Upload document endpoint
-@app.post("/upload-document/")
-async def upload_document(file: UploadFile = File(...)):
-    content = await file.read()
-    # Later: parse PDF/TXT/CSV and store in vector DB
-    return {"filename": file.filename, "size": len(content)}
 
 # Ask questions endpoint
 @app.post("/ask-questions/")
