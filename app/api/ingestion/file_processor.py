@@ -1,40 +1,49 @@
 import os
+import csv
 import pandas as pd
-import json
-import yaml
 from PyPDF2 import PdfReader
+from pdf2image import convert_from_path
+import pytesseract
 
-def process_file(file_path: str):
+def process_file(file_path: str) -> str:
+    """
+    Process a file and return its text content.
+    Supports TXT, CSV, XLSX, and PDF (with OCR fallback).
+    """
     ext = os.path.splitext(file_path)[1].lower()
+    text = ""
 
-    if ext == ".txt":
-        with open(file_path, "r", encoding="utf-8") as f:
-            return f.read()
+    try:
+        if ext == ".txt":
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                text = f.read()
 
-    elif ext == ".pdf":
-        reader = PdfReader(file_path)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() or ""
-        return text
+        elif ext == ".csv":
+            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                reader = csv.reader(f)
+                text = "\n".join([", ".join(row) for row in reader])
 
-    elif ext == ".csv":
-        df = pd.read_csv(file_path)
-        return df.to_string()
+        elif ext == ".xlsx":
+            df = pd.read_excel(file_path)
+            text = df.to_string()
 
-    elif ext in [".xls", ".xlsx"]:
-        df = pd.read_excel(file_path)
-        return df.to_string()
+        elif ext == ".pdf":
+            # Try extracting text with PyPDF2
+            reader = PdfReader(file_path)
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text
 
-    elif ext == ".json":
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return json.dumps(data, indent=2)
+            # Fallback to OCR if no text found
+            if not text.strip():
+                images = convert_from_path(file_path)
+                text = " ".join(pytesseract.image_to_string(img) for img in images)
 
-    elif ext in [".yaml", ".yml"]:
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
-        return yaml.dump(data)
+        else:
+            text = "Unsupported file format"
 
-    else:
-        return "Unsupported file format"
+    except Exception as e:
+        text = f"Error processing file: {str(e)}"
+
+    return text
