@@ -1,6 +1,7 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, status
 import tempfile
 from app.ingestion.file_processor import process_file
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -14,20 +15,20 @@ async def upload_document(file: UploadFile = File(...)):
     content = process_file(tmp_path)
     return {"filename": file.filename, "content_preview": content[:500]}
 
-
 @app.get("/")
 def read_root():
     return {"message": "Generative AI Capstone Project is running!"}
 
 # Health check endpoint
-@app.get("/health-check")
+@app.get("/health-check", status_code=status.HTTP_200_OK)
 def health_check():
     return {"status": "API is up and running"}
 
+# Define the Question model first
+class Question(BaseModel):
+    question: str
 
 # Ask questions endpoint
 @app.post("/ask-questions/")
-async def ask_question(question: str):
-    # Placeholder response
-    return {"question": question, "answer": "LLM response will go here"}
-
+def ask_questions(data: Question):
+    return {"answer": f"You asked: {data.question}"}
