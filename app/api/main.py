@@ -1,37 +1,66 @@
-from fastapi import FastAPI, UploadFile, File, status
-import tempfile
-from app.api.ingestion.file_processor import process_file
-from pydantic import BaseModel
 import os
+import tempfile
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
+
+from .ingestion.file_processor import process_file
+from .ingestion.embedding import embed_chunks, search_chunks
+
 app = FastAPI()
 
+# Allow Streamlit frontend to connect
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # adjust for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global store for uploaded chunks
+uploaded_chunks = []
+
+@app.get("/health-check")
+async def health_check():
+    return {"status": "ok"}
 
 @app.post("/upload-document/")
 async def upload_document(file: UploadFile = File(...)):
-    ext = os.path.splitext(file.filename)[1]   # ".pdf"
+    """
+    Upload a document, extract text, chunk it, embed chunks into FAISS.
+    """
+    ext = os.path.splitext(file.filename)[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
 
-    content = process_file(tmp_path)
-    return {"filename": file.filename, "content_preview": content[:500]}
+    # Extract + chunk
+    chunks = process_file(tmp_path)
 
+    # Store globally for demo
+    global uploaded_chunks
+    uploaded_chunks = chunks
 
+    # Embed and save FAISS index
+    embed_chunks(chunks)
 
-@app.get("/")
-def read_root():
-    return {"message": "Generative AI Capstone Project is running!"}
+    return {
+        "filename": file.filename,
+        "chunks_preview": chunks[:5]  # show first few chunks
+    }
 
-# Health check endpoint
-@app.get("/health-check", status_code=status.HTTP_200_OK)
-def health_check():
-    return {"status": "API is up and running"}
-
-# Define the Question model first
-class Question(BaseModel):
-    question: str
-
-# Ask questions endpoint
 @app.post("/ask-questions/")
-def ask_questions(data: Question):
-    return {"answer": f"You asked: {data.question}"}
+async def ask_questions(question: str = Form(...)):
+    """
+    Ask a question: embed query, search FAISS, return top chunks.
+    """
+    global uploaded_chunks
+    if not uploaded_chunks:
+        return {"answer": "No document uploaded yet."}
+
+    results = search_chunks(question, uploaded_chunks)
+
+    return {
+        "question": question,
+        "top_chunks": results
+    }
