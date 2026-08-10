@@ -24,30 +24,30 @@ uploaded_chunks = []
 async def health_check():
     return {"status": "ok"}
 
+
 @app.post("/upload-document/")
 async def upload_document(file: UploadFile = File(...)):
-    """
-    Upload a document, extract text, chunk it, embed chunks into FAISS.
-    """
-    ext = os.path.splitext(file.filename)[1]
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-        tmp.write(await file.read())
-        tmp_path = tmp.name
+    try:
+        ext = os.path.splitext(file.filename)[1]
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+            tmp.write(await file.read())
+            tmp_path = tmp.name
 
-    # Extract + chunk
-    chunks = process_file(tmp_path)
+        chunks = process_file(tmp_path)
 
-    # Store globally for demo
-    global uploaded_chunks
-    uploaded_chunks = chunks
+        global uploaded_chunks
+        uploaded_chunks = chunks
 
-    # Embed and save FAISS index
-    embed_chunks(chunks)
+        embed_chunks(chunks)
 
-    return {
-        "filename": file.filename,
-        "chunks_preview": chunks[:5]  # show first few chunks
-    }
+        return {
+            "filename": file.filename,
+            "chunks_preview": chunks[:5]
+        }
+    except Exception as e:
+        # ✅ Always return JSON error
+        return {"error": str(e)}
+
 
 @app.post("/ask-questions/")
 async def ask_questions(question: str = Form(...)):
