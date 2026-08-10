@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, status
 import tempfile
-from app.ingestion.file_processor import process_file
+from app.api.ingestion.file_processor import process_file
 from pydantic import BaseModel
 
 app = FastAPI()
